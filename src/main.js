@@ -11,7 +11,7 @@
 
 import { Plugin, PluginSettingTab, Setting, Notice, Platform } from "obsidian";
 import { OcrIndex, ImageTextSearchModal } from "./ocr";
-import { isImage } from "./util";
+import { isImage, indexNotePath } from "./util";
 import { loadNode } from "./node";
 
 const DEFAULT_SETTINGS = {
@@ -23,6 +23,7 @@ class TahoeOcrPlugin extends Plugin {
   async onload() {
     await loadNode();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings.ocrIndexNote = indexNotePath(this.settings.ocrIndexNote, DEFAULT_SETTINGS.ocrIndexNote);
     this.addSettingTab(new TahoeOcrSettingTab(this.app, this));
 
     this.ocr = new OcrIndex(this);
@@ -111,7 +112,7 @@ class TahoeOcrSettingTab extends PluginSettingTab {
       .addToggle((t) => t.setValue(s.ocrWriteNote).onChange(async (v) => ((s.ocrWriteNote = v), await save())));
     new Setting(containerEl)
       .setName("Index note")
-      .addText((t) => t.setPlaceholder("Image Text Index.md").setValue(s.ocrIndexNote).onChange(async (v) => ((s.ocrIndexNote = v.trim() || "Image Text Index.md"), await save())));
+      .addText((t) => t.setPlaceholder("Image Text Index.md").setValue(s.ocrIndexNote).onChange(async (v) => ((s.ocrIndexNote = indexNotePath(v, DEFAULT_SETTINGS.ocrIndexNote)), await save())));
     const count = Object.keys(this.plugin.index().entries).length;
     new Setting(containerEl).setName("Images read").setDesc(`${count.toLocaleString()} images so far.`);
     containerEl.createDiv({ cls: "tahoe-source-link" }).createEl("a", { text: "Source, issues and ideas on GitHub", href: "https://github.com/krishnanefx/obsidian-tahoe-ocr" });
