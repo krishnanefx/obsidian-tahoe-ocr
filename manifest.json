@@ -1,7 +1,7 @@
 {
   "id": "tahoe-ocr",
   "name": "Tahoe OCR",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "minAppVersion": "1.13.0",
   "description": "Search the text in your images: screenshots, photos of slides and scanned pages are read on your Mac with macOS Vision (OCR), so you can find an image by its words, copy its text, and let search find it.",
   "author": "Krishnan Adaikkappan",
