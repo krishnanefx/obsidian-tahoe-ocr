@@ -43,6 +43,15 @@ class TahoeOcrPlugin extends Plugin {
         },
       });
     }
+    this.addCommand({
+      id: "show-image-text-stats",
+      name: "Show how many images have been read",
+      callback: () => {
+        const entries = Object.values(this.index().entries);
+        const withText = entries.filter((e) => (e.text || "").trim()).length;
+        new Notice(`${entries.length.toLocaleString()} images read, ${withText.toLocaleString()} with text`);
+      },
+    });
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
         if (!isImage(file) || this.organizeReads()) return; // Organize adds the same item
