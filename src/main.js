@@ -9,7 +9,7 @@
  * instead of reading every image a second time.
  */
 
-import { Plugin, PluginSettingTab, Setting, Notice, Platform } from "obsidian";
+import { Plugin, PluginSettingTab, Setting, Notice, Platform, TFile } from "obsidian";
 import { OcrIndex, ImageTextSearchModal } from "./ocr";
 import { isImage, indexNotePath } from "./util";
 import { loadNode } from "./node";
@@ -50,6 +50,15 @@ class TahoeOcrPlugin extends Plugin {
         const entries = Object.values(this.index().entries);
         const withText = entries.filter((e) => (e.text || "").trim()).length;
         new Notice(`${entries.length.toLocaleString()} images read, ${withText.toLocaleString()} with text`);
+      },
+    });
+    this.addCommand({
+      id: "open-image-text-index",
+      name: "Open the image text index note",
+      callback: () => {
+        const f = this.app.vault.getAbstractFileByPath(this.settings.ocrIndexNote);
+        if (f instanceof TFile) this.app.workspace.getLeaf(false).openFile(f);
+        else new Notice(this.settings.ocrWriteNote ? "The index note hasn't been written yet" : "Turn on “Searchable index note” in the settings first");
       },
     });
     this.registerEvent(
