@@ -61,6 +61,15 @@ class TahoeOcrPlugin extends Plugin {
         else new Notice(this.settings.ocrWriteNote ? "The index note hasn't been written yet" : "Turn on “Searchable index note” in the settings first");
       },
     });
+    this.addCommand({
+      id: "rewrite-image-text-index",
+      name: "Write the image text index note now",
+      callback: async () => {
+        if (!this.settings.ocrWriteNote) return new Notice("Turn on “Searchable index note” in the settings first");
+        await this.ocr.writeIndexNote();
+        new Notice("Index note updated");
+      },
+    });
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
         if (!isImage(file) || this.organizeReads()) return; // Organize adds the same item
