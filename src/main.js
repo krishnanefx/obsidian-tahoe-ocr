@@ -10,7 +10,8 @@
  */
 
 import { Plugin, PluginSettingTab, Setting, Notice, Platform, TFile } from "obsidian";
-import { OcrIndex, ImageTextSearchModal } from "./ocr";
+import { ImageTextSearchModal } from "./ocr";
+import { ReaderIndex, ConfirmModal } from "./reader";
 import { isImage, indexNotePath } from "./util";
 import { loadNode } from "./node";
 
@@ -26,7 +27,7 @@ class TahoeOcrPlugin extends Plugin {
     this.settings.ocrIndexNote = indexNotePath(this.settings.ocrIndexNote, DEFAULT_SETTINGS.ocrIndexNote);
     this.addSettingTab(new TahoeOcrSettingTab(this.app, this));
 
-    this.ocr = new OcrIndex(this);
+    this.ocr = new ReaderIndex(this);
     this.app.workspace.onLayoutReady(async () => {
       await this.ocr.load();
       if (!this.organizeReads()) this.ocr.start();
@@ -69,6 +70,15 @@ class TahoeOcrPlugin extends Plugin {
         await this.ocr.writeIndexNote();
         new Notice("Index note updated");
       },
+    });
+    this.addCommand({
+      id: "clear-image-text-cache",
+      name: "Clear the image text cache",
+      callback: () =>
+        new ConfirmModal(this.app, "Clear the image text cache?", "The text read from your images is forgotten, and search finds nothing until the images are read again. Your images and notes aren't touched.", "Clear", async () => {
+          await this.ocr.clear();
+          new Notice("Image text cache cleared");
+        }).open(),
     });
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
