@@ -11,7 +11,7 @@
 
 import { Plugin, PluginSettingTab, Setting, Notice, Platform, TFile } from "obsidian";
 import { ImageTextSearchModal } from "./ocr";
-import { ReaderIndex, ConfirmModal } from "./reader";
+import { ReaderIndex, ConfirmModal, imagesInNote } from "./reader";
 import { isImage, indexNotePath } from "./util";
 import { loadNode } from "./node";
 
@@ -80,6 +80,21 @@ class TahoeOcrPlugin extends Plugin {
           new Notice("Image text cache cleared");
         }).open(),
     });
+    if (Platform.isMacOS && Platform.isDesktopApp) {
+      this.addCommand({
+        id: "read-images-in-note",
+        name: "Read the images in this note",
+        checkCallback: (checking) => {
+          const note = this.app.workspace.getActiveFile();
+          if (!note || note.extension !== "md") return false;
+          if (checking) return true;
+          const images = imagesInNote(this.app, note);
+          images.forEach((f) => this.index().readNow(f));
+          new Notice(images.length ? `Reading text in ${images.length} ${images.length === 1 ? "image" : "images"}…` : "No images in this note");
+          return true;
+        },
+      });
+    }
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
         if (!isImage(file) || this.organizeReads()) return; // Organize adds the same item
