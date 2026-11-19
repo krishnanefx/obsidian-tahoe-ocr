@@ -25,6 +25,23 @@ class ReaderIndex extends OcrIndex {
   }
 }
 
+// The images a line of Markdown embeds, nearest to the cursor first.
+function embedsOnLine(line, ch) {
+  const found = [];
+  const re = /!?\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]|!\[[^\]]*\]\(([^)]+)\)/g;
+  let m;
+  while ((m = re.exec(line))) {
+    let target = m[1] || m[2] || "";
+    try {
+      target = decodeURI(target.trim().replace(/^<|>$/g, ""));
+    } catch {
+      // keep it as typed
+    }
+    found.push({ target, distance: ch >= m.index && ch <= m.index + m[0].length ? 0 : Math.min(Math.abs(ch - m.index), Math.abs(ch - (m.index + m[0].length))) });
+  }
+  return found.sort((a, b) => a.distance - b.distance).map((f) => f.target);
+}
+
 // The image files a note embeds.
 function imagesInNote(app, note) {
   const out = [];
@@ -65,4 +82,4 @@ class ConfirmModal extends Modal {
   }
 }
 
-export { ReaderIndex, ConfirmModal, imagesInNote };
+export { ReaderIndex, ConfirmModal, embedsOnLine, imagesInNote };

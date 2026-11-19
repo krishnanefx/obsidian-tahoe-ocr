@@ -11,7 +11,7 @@
 
 import { Plugin, PluginSettingTab, Setting, Notice, Platform, TFile } from "obsidian";
 import { ImageTextSearchModal } from "./ocr";
-import { ReaderIndex, ConfirmModal, imagesInNote } from "./reader";
+import { ReaderIndex, ConfirmModal, embedsOnLine, imagesInNote } from "./reader";
 import { isImage, indexNotePath } from "./util";
 import { loadNode } from "./node";
 
@@ -44,6 +44,23 @@ class TahoeOcrPlugin extends Plugin {
         },
       });
     }
+    this.addCommand({
+      id: "copy-image-text-at-cursor",
+      name: "Copy the text of the image under the cursor",
+      editorCallback: async (editor, view) => {
+        const cur = editor.getCursor();
+        const source = view.file ? view.file.path : "";
+        for (const target of embedsOnLine(editor.getLine(cur.line), cur.ch)) {
+          const file = this.app.metadataCache.getFirstLinkpathDest(target, source);
+          if (!(file instanceof TFile) || !this.isImageFile(file)) continue;
+          const text = await this.index().textFor(file);
+          if (!text) return new Notice(this.ocr.canRead ? "No text found in this image" : "Open this vault on your Mac to read new images");
+          await navigator.clipboard.writeText(text);
+          return new Notice("Text copied");
+        }
+        new Notice("No image on this line");
+      },
+    });
     this.addCommand({
       id: "show-image-text-stats",
       name: "Show how many images have been read",
@@ -121,6 +138,10 @@ class TahoeOcrPlugin extends Plugin {
   organizeReads() {
     const o = this.app.plugins.getPlugin("tahoe-organize");
     return !!(o && o.ocr && o.settings && o.settings.features && o.settings.features.ocr);
+  }
+
+  isImageFile(file) {
+    return /^(png|jpe?g|gif|webp|heic|heif|tiff?|bmp)$/i.test(file.extension);
   }
 
   index() {
