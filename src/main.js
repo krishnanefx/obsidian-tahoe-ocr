@@ -18,6 +18,7 @@ import { loadNode } from "./node";
 const DEFAULT_SETTINGS = {
   ocrWriteNote: false,
   ocrIndexNote: "Image Text Index.md",
+  ocrMinKb: 0,
   ocrRereadChanged: true,
 };
 
@@ -191,6 +192,16 @@ class TahoeOcrSettingTab extends PluginSettingTab {
       .setName("Re-read images that changed")
       .setDesc("When you edit or replace an image, read its text again. Turn off to read each image only once.")
       .addToggle((t) => t.setValue(s.ocrRereadChanged).onChange(async (v) => ((s.ocrRereadChanged = v), await save())));
+    new Setting(containerEl)
+      .setName("Skip small images")
+      .setDesc("Images smaller than this many kilobytes (icons, emoji) aren't read in the background. 0 reads everything.")
+      .addText((t) =>
+        t.setPlaceholder("0").setValue(String(s.ocrMinKb)).onChange(async (v) => {
+          const n = Number(v);
+          s.ocrMinKb = Number.isFinite(n) && n > 0 ? n : 0;
+          await save();
+        })
+      );
     const count = Object.keys(this.plugin.index().entries).length;
     new Setting(containerEl).setName("Images read").setDesc(`${count.toLocaleString()} images so far.`);
     containerEl.createDiv({ cls: "tahoe-source-link" }).createEl("a", { text: "Source, issues and ideas on GitHub", href: "https://github.com/krishnanefx/obsidian-tahoe-ocr" });
