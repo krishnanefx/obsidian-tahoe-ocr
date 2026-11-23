@@ -15,6 +15,7 @@ class ReaderIndex extends OcrIndex {
   skipReason(file) {
     const s = this.plugin.settings;
     if (s.ocrMinKb > 0 && file.stat.size < s.ocrMinKb * 1024) return "small";
+    if (file.stat.size > Math.min(s.ocrMaxMb || MAX_READ_MB, MAX_READ_MB) * 1e6) return "large";
     if (!s.ocrRereadChanged && !this.forcing && this.entries[file.path]) return "unchanged";
     return null;
   }

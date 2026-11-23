@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS = {
   ocrWriteNote: false,
   ocrIndexNote: "Image Text Index.md",
   ocrMinKb: 0,
+  ocrMaxMb: 40,
   ocrRereadChanged: true,
 };
 
@@ -199,6 +200,16 @@ class TahoeOcrSettingTab extends PluginSettingTab {
         t.setPlaceholder("0").setValue(String(s.ocrMinKb)).onChange(async (v) => {
           const n = Number(v);
           s.ocrMinKb = Number.isFinite(n) && n > 0 ? n : 0;
+          await save();
+        })
+      );
+    new Setting(containerEl)
+      .setName("Skip large images")
+      .setDesc("Images larger than this many megabytes aren't read in the background. 40 is the most that can be read.")
+      .addText((t) =>
+        t.setPlaceholder("40").setValue(String(s.ocrMaxMb)).onChange(async (v) => {
+          const n = Number(v);
+          s.ocrMaxMb = Number.isFinite(n) && n > 0 ? Math.min(n, 40) : DEFAULT_SETTINGS.ocrMaxMb;
           await save();
         })
       );
