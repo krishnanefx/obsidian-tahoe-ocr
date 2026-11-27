@@ -18,6 +18,7 @@ import { loadNode } from "./node";
 const DEFAULT_SETTINGS = {
   ocrWriteNote: false,
   ocrIndexNote: "Image Text Index.md",
+  ocrExcludeFolders: "",
   ocrMinKb: 0,
   ocrMaxMb: 40,
   ocrRereadChanged: true,
@@ -213,6 +214,10 @@ class TahoeOcrSettingTab extends PluginSettingTab {
           await save();
         })
       );
+    new Setting(containerEl)
+      .setName("Excluded folders")
+      .setDesc("One folder per line. Images inside are left out of background reading.")
+      .addTextArea((t) => t.setPlaceholder("Attachments/Icons").setValue(s.ocrExcludeFolders).onChange(async (v) => ((s.ocrExcludeFolders = v), await save())));
     const count = Object.keys(this.plugin.index().entries).length;
     new Setting(containerEl).setName("Images read").setDesc(`${count.toLocaleString()} images so far.`);
     containerEl.createDiv({ cls: "tahoe-source-link" }).createEl("a", { text: "Source, issues and ideas on GitHub", href: "https://github.com/krishnanefx/obsidian-tahoe-ocr" });

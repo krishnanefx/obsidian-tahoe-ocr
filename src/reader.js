@@ -1,7 +1,7 @@
 /*
  * Tahoe OCR's own layer over the shared reader (ocr.js, kept identical to
  * Tahoe Organize's): the rules for which images get read in the background
- * (sizes, changed images) and the helpers the commands use.
+ * (folders, sizes, changed images) and the helpers the commands use.
  */
 
 import { Modal, Setting } from "obsidian";
@@ -10,10 +10,18 @@ import { isImage } from "./util";
 
 const MAX_READ_MB = 40; // the shared reader never reads anything larger
 
+function folderList(text) {
+  return String(text || "")
+    .split("\n")
+    .map((l) => l.trim().replace(/^\/+|\/+$/g, ""))
+    .filter(Boolean);
+}
+
 class ReaderIndex extends OcrIndex {
   // A file the background reading leaves alone, or null if it may be read.
   skipReason(file) {
     const s = this.plugin.settings;
+    if (folderList(s.ocrExcludeFolders).some((f) => file.path.startsWith(`${f}/`))) return "folder";
     if (s.ocrMinKb > 0 && file.stat.size < s.ocrMinKb * 1024) return "small";
     if (file.stat.size > Math.min(s.ocrMaxMb || MAX_READ_MB, MAX_READ_MB) * 1e6) return "large";
     if (!s.ocrRereadChanged && !this.forcing && this.entries[file.path]) return "unchanged";
@@ -110,4 +118,4 @@ class ConfirmModal extends Modal {
   }
 }
 
-export { ReaderIndex, ConfirmModal, embedsOnLine, imagesInNote };
+export { ReaderIndex, ConfirmModal, folderList, embedsOnLine, imagesInNote };
